@@ -55,10 +55,50 @@
     "analyst",
     "viewer"
   ],
+  "roll_study_label": "整卷试封批次",
+  "roll_row_label": "试封卷",
+  "roll_fields": [
+    [
+      "shift",
+      "班次",
+      "text"
+    ],
+    [
+      "roll_no",
+      "卷号",
+      "text"
+    ],
+    [
+      "process",
+      "工艺 (A/B)",
+      "text"
+    ],
+    [
+      "qualified",
+      "合格件数",
+      "number"
+    ],
+    [
+      "pieces",
+      "试封件数",
+      "number"
+    ]
+  ],
+  "roll_note": "试封按整卷分派，同卷试件不拆开计算；各班次固定B组卷数，在班次内重分整卷，单侧比较B组合格件数。",
+  "roll_defaults": {
+    "alpha": 0.05
+  },
+  "roll_names": [
+    "砚田·整卷一束",
+    "砚田·整卷二束"
+  ],
+  "roll_algorithm": "班次内整卷置换单侧精确检验",
+  "roll_entities": "RollBatch / RollRecord / RollRun",
   "states": [
     "queued",
     "running",
     "completed",
-    "failed"
+    "failed",
+    "refused"
   ]
 }

@@ -4,10 +4,12 @@ from sqlalchemy import select,func
 from src.config.database import Base,engine,Session
 from src.config.domain import DOMAIN
 from src.models.user import User
+from src.models.roll import RollBatch,RollRecord
 from src.models.study import Study
 from src.models.observation import Observation
-from src.models import run,review,audit
+from src.models import run,review,audit,roll
 from src.utils.security import hash_password
+from src.utils.serializers import now
 
 def seed():
     Base.metadata.create_all(engine)
@@ -37,7 +39,21 @@ def seed():
                 key=f'DEMO-{k+1}-{n+1:04}'
                 if not db.scalar(select(Observation.id).where(Observation.study_id==study.id,Observation.source_key==key)):
                     db.add(Observation(study_id=study.id,source_key=key,values=values))
+        seed_roll_batches(db,rng)
         db.commit()
         counts={model.__tablename__:db.scalar(select(func.count()).select_from(model)) for model in (User,Study,Observation)}
         print(json.dumps(counts));return counts
+def seed_roll_batches(db,rng):
+    """整卷演示：每批两个班次，班次内A/B两组卷数固定，每卷件数相同。"""
+    for k,name in enumerate(DOMAIN['roll_names']):
+        batch=db.scalar(select(RollBatch).where(RollBatch.name==name))
+        if not batch:
+            batch=RollBatch(name=name,note='独立合成整卷观测 / 每卷件数相同 / 班次内固定B组卷数',version=0,created_at=now());db.add(batch);db.flush()
+        for s,shift in enumerate(('早班','晚班')):
+            for n in range(10):
+                process='B' if n<5 else 'A'
+                qualified=int(rng.integers(880,940)) if process=='B' else int(rng.integers(820,890))
+                key=f'ROLL-{k+1}-{s+1}-{n+1:02d}'
+                if not db.scalar(select(RollRecord.id).where(RollRecord.batch_id==batch.id,RollRecord.roll_no==key)):
+                    db.add(RollRecord(batch_id=batch.id,shift=shift,roll_no=key,process=process,qualified=qualified,pieces=1000,created_at=now()))
 if __name__=='__main__': seed()

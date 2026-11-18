@@ -58,6 +58,21 @@ services:
       interval: 3s
       timeout: 4s
       retries: 20
+  roll-worker:
+    build: ./backend
+    container_name: ${COMPOSE_PROJECT_NAME:-seal-fisher}-roll-worker
+    command: python -m src.roll_worker
+    environment: *app-env
+    volumes: ["run-artifacts:/app/artifacts"]
+    depends_on:
+      backend: {condition: service_healthy}
+      db: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,time; assert time.time()-os.stat('/tmp/roll-worker-heartbeat').st_mtime<15"]
+      interval: 3s
+      timeout: 4s
+      retries: 20
   frontend:
     build: ./frontend
     container_name: ${COMPOSE_PROJECT_NAME:-seal-fisher}-frontend
